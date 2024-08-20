@@ -9,13 +9,9 @@ export interface Expense {
     date: string;
 }
 
-export interface Category {
-    name: string;
-}
-
 interface ExpenseState {
     expenses: Expense[];
-    categories: Category[];
+    categories: string[];
     isLoading: boolean;
     error: string | null;
     fetchExpenses: () => Promise<void>;
@@ -43,7 +39,7 @@ export const useExpenseStore = create<ExpenseState>((set) => ({
     fetchCategories: async () => {
         set({ isLoading: true, error: null });
         try {
-            const categories = await api.getCategories();
+            const categories: string[] = await api.getCategories();
             set({ categories, isLoading: false });
         } catch (error) {
             set({ error: 'Failed to fetch categories', isLoading: false });

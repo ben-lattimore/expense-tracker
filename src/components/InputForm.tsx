@@ -72,7 +72,7 @@ const InputForm: React.FC = () => {
                         required
                     >
                         <option value="">Select a category</option>
-                        {categories.map((category) => (
+                        {categories.map((category: string) => (
                             <option key={category} value={category}>
                                 {category}
                             </option>
@@ -82,7 +82,8 @@ const InputForm: React.FC = () => {
                 </div>
                 {selectedCategory === 'new' && (
                     <div className="mb-4">
-                        <label htmlFor="newCategory" className="block text-sm font-medium text-gray-700">New Category Name</label>
+                        <label htmlFor="newCategory" className="block text-sm font-medium text-gray-700">New Category
+                            Name</label>
                         <input
                             type="text"
                             id="newCategory"

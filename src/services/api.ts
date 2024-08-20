@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Expense, Category } from '../store/expenseStore';
+import { Expense } from '../store/expenseStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -18,7 +18,7 @@ const api = {
         await axios.delete(`${API_BASE_URL}/expenses/${id}`);
     },
 
-    getCategories: async (): Promise<Category[]> => {
+    getCategories: async (): Promise<string[]> => {
         const response = await axios.get(`${API_BASE_URL}/categories`);
         return response.data;
     },
