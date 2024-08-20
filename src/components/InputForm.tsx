@@ -1,14 +1,28 @@
 import React, { useState } from 'react';
+import { useExpenseStore } from '../store/expenseStore';
 
 const InputForm: React.FC = () => {
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [newCategory, setNewCategory] = useState('');
+    const { addExpense, categories, getOrCreateCategory, calculateRunningAverages } = useExpenseStore();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement form submission logic
-        console.log({ amount, description, category });
+        const categoryToUse = selectedCategory === 'new' ? newCategory : selectedCategory;
+        const newExpense = {
+            amount: parseFloat(amount),
+            description,
+            categoryName: categoryToUse,
+            date: new Date().toISOString(),
+        };
+        addExpense(newExpense);
+        calculateRunningAverages();  // Call the new function name here
+        setAmount('');
+        setDescription('');
+        setSelectedCategory('');
+        setNewCategory('');
     };
 
     return (
@@ -41,15 +55,35 @@ const InputForm: React.FC = () => {
                 </div>
                 <div className="mb-4">
                     <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                    <input
-                        type="text"
+                    <select
                         id="category"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         required
-                    />
+                    >
+                        <option value="">Select a category</option>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.name}>
+                                {category.name}
+                            </option>
+                        ))}
+                        <option value="new">Add new category</option>
+                    </select>
                 </div>
+                {selectedCategory === 'new' && (
+                    <div className="mb-4">
+                        <label htmlFor="newCategory" className="block text-sm font-medium text-gray-700">New Category Name</label>
+                        <input
+                            type="text"
+                            id="newCategory"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            required
+                        />
+                    </div>
+                )}
                 <button
                     type="submit"
                     className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
