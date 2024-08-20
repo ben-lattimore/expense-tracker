@@ -63,7 +63,7 @@ const InputForm: React.FC = () => {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700">Choose Category</label>
                     <select
                         id="category"
                         value={selectedCategory}
