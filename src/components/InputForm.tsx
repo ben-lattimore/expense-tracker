@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/InputForm.tsx
+import React, { useState, useEffect } from 'react';
 import { useExpenseStore } from '../store/expenseStore';
 
 const InputForm: React.FC = () => {
@@ -6,24 +7,32 @@ const InputForm: React.FC = () => {
     const [description, setDescription] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [newCategory, setNewCategory] = useState('');
-    const { addExpense, categories, getOrCreateCategory, calculateRunningAverages } = useExpenseStore();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const { addExpense, fetchCategories, categories, isLoading, error } = useExpenseStore();
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const categoryToUse = selectedCategory === 'new' ? newCategory : selectedCategory;
         const newExpense = {
             amount: parseFloat(amount),
             description,
-            categoryName: categoryToUse,
+            category: categoryToUse,
             date: new Date().toISOString(),
         };
-        addExpense(newExpense);
-        calculateRunningAverages();  // Call the new function name here
+        await addExpense(newExpense);
+        // Reset form fields
         setAmount('');
         setDescription('');
         setSelectedCategory('');
         setNewCategory('');
     };
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <div className="p-6">
@@ -64,8 +73,8 @@ const InputForm: React.FC = () => {
                     >
                         <option value="">Select a category</option>
                         {categories.map((category) => (
-                            <option key={category.id} value={category.name}>
-                                {category.name}
+                            <option key={category} value={category}>
+                                {category}
                             </option>
                         ))}
                         <option value="new">Add new category</option>

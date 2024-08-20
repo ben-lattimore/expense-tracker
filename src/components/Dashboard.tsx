@@ -1,44 +1,66 @@
-import React, { useEffect } from 'react';
+// src/components/Dashboard.tsx
+import React, { useEffect, useMemo } from 'react';
 import { useExpenseStore } from '../store/expenseStore';
 
 const Dashboard: React.FC = () => {
-    const { dailyTotals, calculateRunningAverages, expenses, categories } = useExpenseStore();
+    const { expenses, isLoading, error, fetchExpenses } = useExpenseStore();
 
     useEffect(() => {
-        calculateRunningAverages();
-    }, [calculateRunningAverages]);
+        fetchExpenses();
+    }, [fetchExpenses]);
 
-    // Get the latest running average
-    const latestRunningAverage = dailyTotals.length > 0 ? dailyTotals[dailyTotals.length - 1].runningAverage : 0;
+    const { totalDailyAverage, categoryDailyAverages, daysSinceFirstExpense } = useMemo(() => {
+        if (expenses.length === 0) {
+            return { totalDailyAverage: 0, categoryDailyAverages: {}, daysSinceFirstExpense: 0 };
+        }
 
-    // Get the latest category averages
-    const latestCategoryAverages = dailyTotals.length > 0 ? dailyTotals[dailyTotals.length - 1].categoryRunningAverages : {};
+        const sortedExpenses = [...expenses].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const firstExpenseDate = new Date(sortedExpenses[0].date);
+        const today = new Date();
+        const daysSinceFirstExpense = Math.max(1, Math.ceil((today.getTime() - firstExpenseDate.getTime()) / (1000 * 60 * 60 * 24)));
 
-    // Get the latest 10 transactions
-    const latestTransactions = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
+        let totalSum = 0;
+        const categorySums: Record<string, number> = {};
+
+        sortedExpenses.forEach(expense => {
+            totalSum += expense.amount;
+            if (!categorySums[expense.category]) {
+                categorySums[expense.category] = 0;
+            }
+            categorySums[expense.category] += expense.amount;
+        });
+
+        const totalDailyAverage = totalSum / daysSinceFirstExpense;
+        const categoryDailyAverages = Object.entries(categorySums).reduce((acc, [category, sum]) => {
+            acc[category] = sum / daysSinceFirstExpense;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return { totalDailyAverage, categoryDailyAverages, daysSinceFirstExpense };
+    }, [expenses]);
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <div className="p-6">
             <h1 className="text-3xl font-bold mb-6">Expense Tracker Dashboard</h1>
 
-            {/* 1. Total Running Average */}
             <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-2">Total Running Average</h2>
-                <p className="text-5xl font-bold text-blue-600">£{latestRunningAverage.toFixed(2)}</p>
+                <h2 className="text-xl font-semibold mb-2">Total Daily Average (Last {daysSinceFirstExpense} days)</h2>
+                <p className="text-5xl font-bold text-blue-600">£{totalDailyAverage.toFixed(2)}</p>
             </div>
 
-            {/* 2. Category Running Averages */}
-            <h2 className="text-2xl font-semibold mb-4">Category Averages</h2>
+            <h2 className="text-2xl font-semibold mb-4">Category Daily Averages</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {Object.entries(latestCategoryAverages).map(([category, average]) => (
+                {Object.entries(categoryDailyAverages).map(([category, average]) => (
                     <div key={category} className="bg-white shadow-md rounded-lg p-4">
                         <h3 className="text-lg font-semibold mb-2">{category}</h3>
-                        <p className="text-2xl font-bold text-green-600">£{average.toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-green-600">£{average?.toFixed(2) ?? 'N/A'}</p>
                     </div>
                 ))}
             </div>
 
-            {/* 3. Latest Transactions */}
             <h2 className="text-2xl font-semibold mb-4">Latest Transactions</h2>
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <table className="min-w-full">
@@ -51,17 +73,14 @@ const Dashboard: React.FC = () => {
                     </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                    {latestTransactions.map((transaction) => {
-                        const category = categories.find(cat => cat.id === transaction.categoryId);
-                        return (
-                            <tr key={transaction.id}>
-                                <td className="px-6 py-4 whitespace-nowrap">{transaction.description}</td>
-                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">£{transaction.amount.toFixed(2)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{category ? category.name : 'Unknown'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{new Date(transaction.date).toLocaleDateString()}</td>
-                            </tr>
-                        );
-                    })}
+                    {expenses.slice(-10).reverse().map((expense) => (
+                        <tr key={expense._id}>
+                            <td className="px-6 py-4 whitespace-nowrap">{expense.description}</td>
+                            <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">£{expense.amount?.toFixed(2) ?? 'N/A'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{expense.category}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{new Date(expense.date).toLocaleDateString()}</td>
+                        </tr>
+                    ))}
                     </tbody>
                 </table>
             </div>
