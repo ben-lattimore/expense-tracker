@@ -1,4 +1,3 @@
-// src/store/expenseStore.ts
 import { create } from 'zustand';
 import api from '../services/api';
 
@@ -22,6 +21,7 @@ interface ExpenseState {
     fetchExpenses: () => Promise<void>;
     fetchCategories: () => Promise<void>;
     addExpense: (expense: Omit<Expense, '_id'>) => Promise<void>;
+    deleteExpense: (id: string) => Promise<void>;
 }
 
 export const useExpenseStore = create<ExpenseState>((set) => ({
@@ -60,6 +60,19 @@ export const useExpenseStore = create<ExpenseState>((set) => ({
             }));
         } catch (error) {
             set({ error: 'Failed to add expense', isLoading: false });
+        }
+    },
+
+    deleteExpense: async (id) => {
+        set({ isLoading: true, error: null });
+        try {
+            await api.deleteExpense(id);
+            set((state) => ({
+                expenses: state.expenses.filter((expense) => expense._id !== id),
+                isLoading: false,
+            }));
+        } catch (error) {
+            set({ error: 'Failed to delete expense', isLoading: false });
         }
     },
 }));

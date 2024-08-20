@@ -14,6 +14,10 @@ const api = {
         return response.data;
     },
 
+    deleteExpense: async (id: string): Promise<void> => {
+        await axios.delete(`${API_BASE_URL}/expenses/${id}`);
+    },
+
     getCategories: async (): Promise<Category[]> => {
         const response = await axios.get(`${API_BASE_URL}/categories`);
         return response.data;

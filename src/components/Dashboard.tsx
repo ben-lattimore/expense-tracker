@@ -3,7 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useExpenseStore } from '../store/expenseStore';
 
 const Dashboard: React.FC = () => {
-    const { expenses, isLoading, error, fetchExpenses } = useExpenseStore();
+    const { expenses, isLoading, error, fetchExpenses, deleteExpense } = useExpenseStore();
 
     useEffect(() => {
         fetchExpenses();
@@ -39,6 +39,12 @@ const Dashboard: React.FC = () => {
         return { totalDailyAverage, categoryDailyAverages, daysSinceFirstExpense };
     }, [expenses]);
 
+    const handleDelete = async (id: string) => {
+        if (window.confirm('Are you sure you want to delete this expense?')) {
+            await deleteExpense(id);
+        }
+    };
+
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
@@ -60,7 +66,6 @@ const Dashboard: React.FC = () => {
                     </div>
                 ))}
             </div>
-
             <h2 className="text-2xl font-semibold mb-4">Latest Transactions</h2>
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <table className="min-w-full">
@@ -70,6 +75,7 @@ const Dashboard: React.FC = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -79,6 +85,14 @@ const Dashboard: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">£{expense.amount?.toFixed(2) ?? 'N/A'}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{expense.category}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{new Date(expense.date).toLocaleDateString()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <button
+                                    onClick={() => handleDelete(expense._id)}
+                                    className="text-red-600 hover:text-red-900"
+                                >
+                                    Delete
+                                </button>
+                            </td>
                         </tr>
                     ))}
                     </tbody>
