@@ -68,35 +68,37 @@ const Dashboard: React.FC = () => {
             </div>
             <h2 className="text-2xl font-semibold mb-4">Latest Transactions</h2>
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="min-w-full">
-                    <thead>
-                    <tr className="bg-gray-100">
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                    {expenses.slice(-10).reverse().map((expense) => (
-                        <tr key={expense._id}>
-                            <td className="px-6 py-4 whitespace-nowrap">{expense.description}</td>
-                            <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">£{expense.amount?.toFixed(2) ?? 'N/A'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{expense.category}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{new Date(expense.date).toLocaleDateString()}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <button
-                                    onClick={() => handleDelete(expense._id)}
-                                    className="text-red-600 hover:text-red-900"
-                                >
-                                    Delete
-                                </button>
-                            </td>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                        <thead>
+                        <tr className="bg-gray-100">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                        {expenses.slice(-10).reverse().map((expense) => (
+                            <tr key={expense._id}>
+                                <td className="px-6 py-4 whitespace-nowrap">{expense.description}</td>
+                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">£{expense.amount?.toFixed(2) ?? 'N/A'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{expense.category}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{new Date(expense.date).toLocaleDateString()}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <button
+                                        onClick={() => handleDelete(expense._id)}
+                                        className="text-red-600 hover:text-red-900"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
