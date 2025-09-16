@@ -93,6 +93,11 @@ interface AnalyticsState {
     lastFetchTrends: number | null;
     lastFetchSummary: number | null;
     
+    // Parameter tracking for cache invalidation
+    lastDailyDays: number | null;
+    lastWeeklyWeeks: number | null;
+    lastTrendsMonths: number | null;
+    
     // Actions
     fetchDailySpending: (days?: number) => Promise<void>;
     fetchMonthlyComparison: () => Promise<void>;
@@ -151,12 +156,22 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     lastFetchTrends: null,
     lastFetchSummary: null,
     
+    // Parameter tracking
+    lastDailyDays: null,
+    lastWeeklyWeeks: null,
+    lastTrendsMonths: null,
+    
     // Actions
     fetchDailySpending: async (days = 7) => {
         const state = get();
         
-        // Check cache freshness
-        if (state.dailySpending.length > 0 && isFresh(state.lastFetchDaily)) {
+        // Check cache freshness AND if parameters changed
+        const parametersChanged = state.lastDailyDays !== days;
+        const shouldFetch = !state.dailySpending.length || 
+                           !isFresh(state.lastFetchDaily) ||
+                           parametersChanged;
+        
+        if (!shouldFetch) {
             return;
         }
         
@@ -167,7 +182,8 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
             set({
                 dailySpending: response.data,
                 isLoadingDaily: false,
-                lastFetchDaily: Date.now()
+                lastFetchDaily: Date.now(),
+                lastDailyDays: days
             });
         } catch (error) {
             set({
@@ -205,8 +221,13 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     fetchWeeklyTrends: async (weeks = 4) => {
         const state = get();
         
-        // Check cache freshness
-        if (state.weeklyTrends.length > 0 && isFresh(state.lastFetchWeekly)) {
+        // Check cache freshness AND if parameters changed
+        const parametersChanged = state.lastWeeklyWeeks !== weeks;
+        const shouldFetch = !state.weeklyTrends.length || 
+                           !isFresh(state.lastFetchWeekly) ||
+                           parametersChanged;
+        
+        if (!shouldFetch) {
             return;
         }
         
@@ -217,7 +238,8 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
             set({
                 weeklyTrends: response.data,
                 isLoadingWeekly: false,
-                lastFetchWeekly: Date.now()
+                lastFetchWeekly: Date.now(),
+                lastWeeklyWeeks: weeks
             });
         } catch (error) {
             set({
@@ -230,8 +252,13 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     fetchSpendingTrends: async (months = 6) => {
         const state = get();
         
-        // Check cache freshness
-        if (state.spendingTrends.length > 0 && isFresh(state.lastFetchTrends)) {
+        // Check cache freshness AND if parameters changed
+        const parametersChanged = state.lastTrendsMonths !== months;
+        const shouldFetch = !state.spendingTrends.length || 
+                           !isFresh(state.lastFetchTrends) ||
+                           parametersChanged;
+        
+        if (!shouldFetch) {
             return;
         }
         
@@ -242,7 +269,8 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
             set({
                 spendingTrends: response.data,
                 isLoadingTrends: false,
-                lastFetchTrends: Date.now()
+                lastFetchTrends: Date.now(),
+                lastTrendsMonths: months
             });
         } catch (error) {
             set({
@@ -288,13 +316,16 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     },
     
     refreshAllData: async () => {
-        // Clear cache timestamps to force fresh data
+        // Clear cache timestamps and parameters to force fresh data
         set({
             lastFetchDaily: null,
             lastFetchMonthly: null,
             lastFetchWeekly: null,
             lastFetchTrends: null,
-            lastFetchSummary: null
+            lastFetchSummary: null,
+            lastDailyDays: null,
+            lastWeeklyWeeks: null,
+            lastTrendsMonths: null
         });
         
         // Fetch all data in parallel
